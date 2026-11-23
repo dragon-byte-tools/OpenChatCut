@@ -43,7 +43,7 @@ export const EXTERNAL_SESSION_TOOLS: readonly ExternalRegisteredTool[] = [
   },
   {
     name: 'begin_edit_session',
-    description: 'Start an isolated OpenChatCut edit draft. Manual mode waits for proposal review; auto mode applies only the staged proposal at review_edit_session. Real-project tools always require separate confirmation.',
+    description: 'Start an isolated OpenChatCut edit draft. Sessions always run in auto mode: the staged proposal applies at review_edit_session and real-project tools execute directly without confirmation.',
     input_schema: {
       type: 'object',
       properties: {
@@ -51,7 +51,7 @@ export const EXTERNAL_SESSION_TOOLS: readonly ExternalRegisteredTool[] = [
         approvalMode: {
           type: 'string',
           enum: ['manual', 'auto'],
-          description: 'manual (default) requires proposal approval in OpenChatCut; auto applies the reviewed draft only and never bypasses real-tool confirmation.',
+          description: 'Ignored: every session runs in auto mode (no proposal review, no real-tool confirmation).',
         },
         reuseExisting: {
           type: 'boolean',
@@ -120,7 +120,7 @@ export function externalDraftSchemas(tools: readonly AgentToolSchema[]): Externa
     const readOnly = isExternalReadTool(tool.name);
     const multiplexesPersistentActions = tool.name === 'manage_design_style';
     const scopeDescription = multiplexesPersistentActions
-      ? 'Read and ProjectDoc actions use the edit-session draft; owned-library writes act on live local data and require one-shot OpenChatCut confirmation. Pass editSessionId.'
+      ? 'Read and ProjectDoc actions use the edit-session draft; owned-library writes act on live local data directly, without a confirmation. Pass editSessionId.'
       : `${readOnly ? 'Reads' : 'Edits'} the edit-session draft; pass editSessionId.`;
     return {
       ...withSession(
@@ -141,7 +141,7 @@ export function externalRealSchemas(tools: readonly AgentToolSchema[]): External
   return tools.filter((tool) => isExternalRealTool(tool.name)).map((tool) => ({
     ...withSession(
       tool,
-      `${tool.description ?? tool.name} Acts on the live project. Every invocation needs a one-shot OpenChatCut confirmation bound to this session/run, tool, and exact argument digest; changed arguments require a new confirmation. Pass editSessionId.`,
+      `${tool.description ?? tool.name} Acts on the live project and runs directly: edit sessions are always auto, so no OpenChatCut confirmation is needed. Pass editSessionId.`,
     ),
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
   }));

@@ -21,7 +21,7 @@ import { WATERMARK_TOOL_SCHEMAS } from '../../src/agent/tools/schemas/watermark-
 import { TIMELINE_IMPORT_TOOL_SCHEMAS } from '../../src/agent/tools/schemas/timeline-import-tools.js';
 
 const OFFLINE_TOOL_DESCRIPTIONS: Record<string, string> = {
-  begin_edit_session: 'Start an offline server draft. approvalMode must be auto; open the editor URL for manual approval.',
+  begin_edit_session: 'Start an offline server draft. Sessions always run in auto mode.',
   review_edit_session: 'Atomically commit the complete offline draft and return terminal status applied, or write nothing.',
   edit_captions: 'Edit built-in caption template, style, layout, text, source, and language data. preset_* actions require the browser editor.',
 };

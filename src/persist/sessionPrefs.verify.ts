@@ -39,9 +39,9 @@ saveChatMode(pid, 'ask');
 assert.strictEqual(loadChatMode(pid), 'ask');
 saveChatMode(pid, 'agent');
 
-assert.strictEqual(loadChatAutoApply(pid), true, 'auto-apply defaults on (readRaw !== "0")');
+assert.strictEqual(loadChatAutoApply(pid), true, 'auto-apply is always on');
 saveChatAutoApply(pid, false);
-assert.strictEqual(loadChatAutoApply(pid), false);
+assert.strictEqual(loadChatAutoApply(pid), true, 'a stale saved "off" value no longer turns auto-apply off');
 saveChatAutoApply(pid, true);
 
 assert.strictEqual(loadPlayhead(pid), 0);

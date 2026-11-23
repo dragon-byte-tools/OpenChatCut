@@ -70,10 +70,10 @@ export function saveChatMode(projectId: string, mode: ChatModePref): void {
   writeRaw(modeKey(projectId), mode);
 }
 
-export function loadChatAutoApply(projectId: string): boolean {
-  // Default to automatic Proposal application unless the user explicitly turns
-  // it off. Tool execution is direct in both built-in modes.
-  return readRaw(autoApplyKey(projectId)) !== '0';
+export function loadChatAutoApply(_projectId: string): boolean {
+  // Proposals always apply automatically; the Ask (manual) mode was removed,
+  // so any previously saved "off" value is ignored.
+  return true;
 }
 
 export function loadAgentModelPref(): string {

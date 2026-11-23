@@ -160,20 +160,18 @@ const commonPrefixLength = (a: string, b: string): number => {
     getDoc: () => ({ version: 3, assets: [], mediaFolders: [], activeTimelineId: 'tl1', timelines: [] }),
     getCreativeMode: () => null,
   } as unknown as AgentContext;
+  assert.ok(
+    buildAgentSystemPrompt(registryCtx, DEFAULT_AGENT_SETTINGS).includes('# Auto-apply mode (YOLO)'),
+    'the unsynced registry is auto, so the YOLO override is injected when getApprovalMode is absent',
+  );
+  // The rest of this file checks the manual prompt, so the registry is set to
+  // manual explicitly; that path must still leave the YOLO override out.
+  setAgentAutoApply(false);
   assert.equal(
     buildAgentSystemPrompt(registryCtx, DEFAULT_AGENT_SETTINGS).includes('# Auto-apply mode (YOLO)'),
     false,
-    'the unsynced manual registry must not inject the YOLO override',
+    'a registry synced to manual must not inject the YOLO override',
   );
-  setAgentAutoApply(true);
-  try {
-    assert.ok(
-      buildAgentSystemPrompt(registryCtx, DEFAULT_AGENT_SETTINGS).includes('# Auto-apply mode (YOLO)'),
-      'the approval-mode registry must inject the YOLO override when getApprovalMode is absent',
-    );
-  } finally {
-    setAgentAutoApply(false);
-  }
   assert.equal(confirmationModePrompt('manual'), '', 'manual (ask) mode must not change the static prompt');
   const auto = confirmationModePrompt('auto');
   assert.match(auto, /# Auto-apply mode \(YOLO\)/);

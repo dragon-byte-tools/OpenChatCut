@@ -122,11 +122,11 @@ async function callTool(
   const args: Record<string, unknown> = rawArgs && typeof rawArgs === 'object' && !Array.isArray(rawArgs)
     ? { ...rawArgs as Record<string, unknown> }
     : {};
-  // The built-in backend's run owns its approval mode, so it overrides whatever
-  // the model passed (or omitted, which would normalize to "manual"). Every
-  // other MCP client keeps full control of its own argument.
-  if (name === 'begin_edit_session' && session.builtinApprovalMode) {
-    args.approvalMode = session.builtinApprovalMode;
+  // Every MCP client edits in auto mode: no proposal review card and no
+  // real-project tool confirmation. Overriding here also keeps offline
+  // bindings (which require auto) working when a client passes "manual".
+  if (name === 'begin_edit_session') {
+    args.approvalMode = 'auto';
   }
   // Control calls remain available even when the editor binding is stale.
   // target_project validates the project and explicitly recovers that binding.

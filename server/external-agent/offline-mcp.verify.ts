@@ -108,11 +108,11 @@ try {
   assert.equal(resultField(target, 'bindingMode'), 'offline');
   assert.equal(mcpSessionsForTest()[0].bindingMode, 'offline');
 
-  const manual = await client.callTool({ name: 'begin_edit_session', arguments: { approvalMode: 'manual' } });
-  assert.equal(manual.isError, true);
-  assert.equal(resultField(manual, 'outcome'), 'rejected');
-
-  const begin = await client.callTool({ name: 'begin_edit_session', arguments: { approvalMode: 'auto' } });
+  // The MCP server forces auto mode, so a client asking for "manual" still
+  // opens a working offline session instead of being rejected.
+  const begin = await client.callTool({ name: 'begin_edit_session', arguments: { approvalMode: 'manual' } });
+  assert.notEqual(begin.isError, true);
+  assert.equal(resultField(begin, 'approvalMode'), 'auto');
   const editSessionId = sessionId(begin);
   const edit = await client.callTool({
     name: 'set_aspect_ratio',

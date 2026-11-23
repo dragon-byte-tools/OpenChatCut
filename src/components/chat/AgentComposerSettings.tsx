@@ -44,25 +44,9 @@ function choiceStyle(active: boolean): CSSProperties {
 
 export function AgentComposerSettings(props: AgentComposerSettingsProps) {
   const t = useT();
-  const { autoApply, onAutoApplyChange, settings, onSettingsChange } = props;
+  const { settings, onSettingsChange } = props;
   return (
     <>
-      <div style={{ padding: '8px 10px 4px', color: theme.text, fontSize: 12.5 }}>{t('模式')}</div>
-      <div style={{ display: 'flex', gap: 4, padding: '0 10px' }}>
-        {(['ask', 'yolo'] as const).map((mode) => {
-          const active = (mode === 'yolo') === autoApply;
-          return (
-            <button key={mode} onClick={() => onAutoApplyChange(mode === 'yolo')} style={choiceStyle(active)}>
-              {mode === 'ask' ? t('Ask 模式') : t('YOLO 模式')}
-            </button>
-          );
-        })}
-      </div>
-      <div style={{ fontSize: 11, color: theme.textDim, padding: '0 10px 6px' }}>
-        {autoApply
-          ? t('YOLO 模式：提案自动应用，工具直接执行；仅在缺少关键信息时询问。')
-          : t('Ask 模式：时间线提案等待你应用；工具直接执行，关键选项仍会询问。')}
-      </div>
       <div style={{ padding: '8px 10px 4px', color: theme.text, fontSize: 12.5 }}>{t('MG 质量')}</div>
       <div style={{ display: 'flex', gap: 4, padding: '0 10px' }}>
         {MG_TIERS.map((tier) => (

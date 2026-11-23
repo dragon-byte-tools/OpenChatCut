@@ -1,10 +1,10 @@
 /**
- * YOLO (auto-apply) mode is a per-project composer preference. The system
- * prompt reads it through this module-level registry without threading React
- * props through the agent run loop. The registry starts false until the
- * composer syncs the persisted value on mount and on every toggle.
+ * Auto-apply (YOLO) is the only mode: proposals always apply automatically. The
+ * system prompt reads it through this module-level registry without threading
+ * React props through the agent run loop. It starts true so a run that begins
+ * before the composer mounts is auto as well.
  */
-let autoApply = false;
+let autoApply = true;
 
 export function setAgentAutoApply(value: boolean): void {
   autoApply = value;
