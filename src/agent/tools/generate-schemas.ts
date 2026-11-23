@@ -1,5 +1,6 @@
 import { FAL_IMAGE_MODELS, FAL_VIDEO_MODELS, falModelSummary } from '../../../shared/fal-models';
 import type { AgentToolSchema } from '../tool-schema';
+import { EXPORT_OPTIONS_FIRST } from './schemas/export-tools';
 import { MINIMAX_LANGUAGE_BOOSTS } from '../../../shared/media-provider-params';
 
 /** Anthropic schema for generating class tools. Just push into this array (it will automatically enter the model's visible tool list). */
@@ -217,6 +218,7 @@ export const GENERATE_TOOL_SCHEMAS: AgentToolSchema[] = [
       '— relay to the user and retry with confirmFontFallback=true only after they accept.',
       'For XML, pass nleFormat=fcp_xml (default, Premiere) or fcp_xml_resolve (DaVinci Resolve).',
       'Optional frame boundaries use a half-open [startFrame, endFrameExclusive) range.',
+      EXPORT_OPTIONS_FIRST,
     ].join(' '),
     input_schema: {
       type: 'object',

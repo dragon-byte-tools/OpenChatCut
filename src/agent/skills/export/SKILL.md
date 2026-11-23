@@ -13,6 +13,58 @@ Default policy:
 - Keep originals local by default during editing. Upload originals only when a cloud export/proof needs remote assets and the user has not forbidden upload.
 - Do not wrap sandbox `ffmpeg` work as a OpenChatCut tool. Use sandbox `ffmpeg` for full video processing only when the user explicitly asks for a standalone local-file operation outside a OpenChatCut editing workflow. For OpenChatCut editing tasks, do not produce a pre-edited or flattened local render as the primary review/final deliverable; use OpenChatCut export.
 
+## Export Options Card
+
+When the user asks to export / render / "xuất video" without naming the
+settings, do not render with silent defaults. First call
+`ask_followup_questions` with one export-options card, then stop the turn and
+wait for the submitted answer. Skip the card when the user already chose the
+settings in the request, or said to use the defaults / not ask.
+
+Write every visible string in the user's language. Mark the default option in
+its label. Typical card (adapt labels to the conversation language):
+
+```json
+{
+  "title": "Export settings",
+  "prompt": "Pick how you want the video exported, then press Export.",
+  "submitLabel": "Export",
+  "messagePrefix": "Export with these settings:",
+  "fields": [
+    { "id": "format", "label": "Output", "type": "single", "required": true, "options": [
+      { "id": "video", "label": "Video (default)" },
+      { "id": "audio", "label": "Audio only" },
+      { "id": "subtitles", "label": "Subtitle file (SRT/TXT)" },
+      { "id": "xml", "label": "Project XML (Premiere / Resolve)" }
+    ] },
+    { "id": "resolution", "label": "Resolution (video)", "type": "single", "options": [
+      { "id": "timeline", "label": "Same as timeline (default)" },
+      { "id": "1080p", "label": "1080p" },
+      { "id": "720p", "label": "720p" },
+      { "id": "480p", "label": "480p" }
+    ] },
+    { "id": "fps", "label": "Frame rate (video)", "type": "single", "options": [
+      { "id": "timeline", "label": "Same as timeline (default)" },
+      { "id": "24", "label": "24" }, { "id": "25", "label": "25" }, { "id": "30", "label": "30" },
+      { "id": "50", "label": "50" }, { "id": "60", "label": "60" }
+    ] },
+    { "id": "codec", "label": "File type", "type": "single", "options": [
+      { "id": "h264", "label": "MP4 / H.264 (default)" },
+      { "id": "vp8", "label": "WebM / VP8" },
+      { "id": "mp3", "label": "MP3 (audio)" },
+      { "id": "wav", "label": "WAV (audio)" }
+    ] },
+    { "id": "name", "label": "File name (optional)", "type": "text", "placeholder": "final-cut" }
+  ]
+}
+```
+
+Map the answer to `submit_export` (or `submit_render_job` for long timelines):
+"Same as timeline" means omit `resolution` / `fps`; ignore video-only fields for
+audio/subtitles/xml; for audio pick `mp3`/`wav` (default `mp3`); for subtitles
+add `subtitleFormat` (default `srt`); for xml add `nleFormat` (ask Premiere vs
+Resolve only if it is unclear). Omit `name` when blank.
+
 ## Durable Export
 
 Use `submit_export` for the execution path:

@@ -121,7 +121,10 @@ const ROUTING_GROUPS: readonly RoutingGroup[] = [
     tools: ['publish_to_social', 'track_social_publish', 'submit_render_job', 'track_export'],
   },
   {
-    requestKeywords: ['export', 'render', 'xml', 'prores', 'premiere', 'resolve', '导出', '渲染', '成片'],
+    requestKeywords: [
+      'export', 'render', 'xml', 'prores', 'premiere', 'resolve', '导出', '渲染', '成片',
+      'xuất video', 'xuất file', 'xuất ra', 'kết xuất',
+    ],
     tools: [
       'submit_export', 'submit_render_job', 'track_export', 'read_export_history',
       'verify_export', 'download_media', 'export_motion_graphic_prores',

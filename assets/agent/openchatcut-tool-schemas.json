@@ -2195,7 +2195,7 @@
     },
     {
       "name": "submit_export",
-      "description": "Export the active timeline synchronously as MP4/WebM video, MP3/WAV audio, SRT/TXT subtitles, or an FCPXML project (format=xml) for Premiere / Resolve / FCP. When MG/captions reference fonts the renderer cannot load, the first call returns unsupportedFonts — relay to the user and retry with confirmFontFallback=true only after they accept. For XML, pass nleFormat=fcp_xml (default, Premiere) or fcp_xml_resolve (DaVinci Resolve). Optional frame boundaries use a half-open [startFrame, endFrameExclusive) range.",
+      "description": "Export the active timeline synchronously as MP4/WebM video, MP3/WAV audio, SRT/TXT subtitles, or an FCPXML project (format=xml) for Premiere / Resolve / FCP. When MG/captions reference fonts the renderer cannot load, the first call returns unsupportedFonts — relay to the user and retry with confirmFontFallback=true only after they accept. For XML, pass nleFormat=fcp_xml (default, Premiere) or fcp_xml_resolve (DaVinci Resolve). Optional frame boundaries use a half-open [startFrame, endFrameExclusive) range. If the user asks to export without naming the settings, first call ask_followup_questions with an export-options card (format, resolution, fps, codec, file name; mark the defaults) and wait for their pick before rendering. Skip the card when they already chose the settings or said to use the defaults.",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -2951,7 +2951,7 @@
     },
     {
       "name": "submit_render_job",
-      "description": "Render the active timeline ASYNCHRONOUSLY as MP4/WebM video or MP3/WAV audio. Returns immediately with a renderId; the job also appears in the editor top-right export queue with progress and cancellation. Poll track_export for status/progress and the download URL. Prefer this over the synchronous submit_export for long timelines. Optional frame boundaries use a half-open [startFrame, endFrameExclusive) range.",
+      "description": "Render the active timeline ASYNCHRONOUSLY as MP4/WebM video or MP3/WAV audio. Returns immediately with a renderId; the job also appears in the editor top-right export queue with progress and cancellation. Poll track_export for status/progress and the download URL. Prefer this over the synchronous submit_export for long timelines. Optional frame boundaries use a half-open [startFrame, endFrameExclusive) range. If the user asks to export without naming the settings, first call ask_followup_questions with an export-options card (format, resolution, fps, codec, file name; mark the defaults) and wait for their pick before rendering. Skip the card when they already chose the settings or said to use the defaults.",
       "input_schema": {
         "type": "object",
         "properties": {

@@ -2,11 +2,21 @@ import type { AgentToolSchema } from '../../tool-schema';
 
 const MAX_WAIT_SECONDS = 3600;
 
+/**
+ * Shared by submit_export and submit_render_job: a bare "export" request gets
+ * an options card first, so the user picks the settings instead of the agent
+ * silently rendering with defaults.
+ */
+export const EXPORT_OPTIONS_FIRST =
+  'If the user asks to export without naming the settings, first call ask_followup_questions with an export-options card ' +
+  '(format, resolution, fps, codec, file name; mark the defaults) and wait for their pick before rendering. ' +
+  'Skip the card when they already chose the settings or said to use the defaults.';
+
 export const EXPORT_TOOL_SCHEMAS: AgentToolSchema[] = [
   {
     name: 'submit_render_job',
     description:
-      'Render the active timeline ASYNCHRONOUSLY as MP4/WebM video or MP3/WAV audio. Returns immediately with a renderId; the job also appears in the editor top-right export queue with progress and cancellation. Poll track_export for status/progress and the download URL. Prefer this over the synchronous submit_export for long timelines. Optional frame boundaries use a half-open [startFrame, endFrameExclusive) range.',
+      'Render the active timeline ASYNCHRONOUSLY as MP4/WebM video or MP3/WAV audio. Returns immediately with a renderId; the job also appears in the editor top-right export queue with progress and cancellation. Poll track_export for status/progress and the download URL. Prefer this over the synchronous submit_export for long timelines. Optional frame boundaries use a half-open [startFrame, endFrameExclusive) range. ' + EXPORT_OPTIONS_FIRST,
     input_schema: {
       type: 'object',
       properties: {
