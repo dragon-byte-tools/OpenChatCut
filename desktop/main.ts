@@ -326,6 +326,9 @@ function registerDesktopHandlers(trustedOrigin: string): void {
 }
 
 
+/** Upstream auto-updates would replace this fork with a build without its changes. */
+const FORK_UPDATES_DISABLED = true;
+
 async function boot(): Promise<void> {
   await app.whenReady();
   if (app.isPackaged) {
@@ -353,7 +356,9 @@ async function boot(): Promise<void> {
   installProjectStoreIpc(origin);
   installEditorAuthIpc(origin);
   installDesktopUpdateIpc(origin, {
-    enabled: supportsDirectDesktopUpdates({
+    // Fork: upstream releases do not carry this fork's changes, so installing one would
+    // silently drop them. Direct updates stay off until the fork publishes its own feed.
+    enabled: !FORK_UPDATES_DISABLED && supportsDirectDesktopUpdates({
       packaged: app.isPackaged,
       smoke: SMOKE,
       platform: process.platform,
