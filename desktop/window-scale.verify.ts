@@ -7,7 +7,10 @@ import {
   resolveInitialDesktopWindowBounds,
 } from './window-scale.ts';
 
-const mainSource = readFileSync(new URL('./main.ts', import.meta.url), 'utf8');
+// Window construction lives in editor-windows.ts (shared by the main window and project windows).
+const mainSource = ['./main.ts', './editor-windows.ts']
+  .map((file) => readFileSync(new URL(file, import.meta.url), 'utf8'))
+  .join('\n');
 
 assert.match(mainSource, /\bscreen\b/, 'desktop startup must read the available display work area');
 assert.match(

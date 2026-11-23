@@ -7,13 +7,12 @@ import {
   BrowserWindow,
   dialog,
   ipcMain,
-  Menu,
-  screen,
   shell,
   type OpenDialogOptions,
   type SaveDialogOptions,
 } from 'electron';
-import { buildTextContextMenuTemplate } from './context-menu.ts';
+import { createAppWindow, installDesktopPageGuards, openProjectWindow } from './editor-windows.ts';
+import { setEditorOpener } from '../server/external-agent/editor-opener.ts';
 import { startEmbeddedServer } from './embedded-server.ts';
 import { createTransparentMovProxy, importLocalMedia } from '../server/local-media-import.ts';
 import {
@@ -40,9 +39,7 @@ import { isTranscriptWindowPayload, TRANSCRIPT_WINDOW_CHANNELS, type TranscriptW
 import {
   assertTrustedDesktopSenderUrl,
   resolveDesktopDevOrigin,
-  resolveDesktopPageUrlDecision,
 } from './page-origin.ts';
-import type { DesktopPageUrlDecision, DesktopPageUrlSurface } from './page-origin.ts';
 import { preparePackagedRuntime } from './packaged-runtime.ts';
 import {
   describeMissingRuntimeAssets,
@@ -53,10 +50,8 @@ import {
 import { ffmpegBin } from '../server/media-binaries.ts';
 import { focusExistingWindow } from './single-instance.ts';
 import { requestProfileScopedSingleInstanceLock } from './runtime-profile.ts';
-import { applyDesktopWindowFrame, desktopWindowFrameOptions } from './window-frame.ts';
-import { applyResponsiveWindowScale, DESKTOP_UI_SCALE_MAX, DESKTOP_UI_SCALE_MIN, installResponsiveWindowScale, parseUserUiScale } from './window-scale.ts';
+import { applyResponsiveWindowScale, DESKTOP_UI_SCALE_MAX, DESKTOP_UI_SCALE_MIN, parseUserUiScale } from './window-scale.ts';
 import { migrateUiScaleBase } from './ui-scale-migration.ts';
-import { resolveInitialDesktopWindowBounds } from './window-scale.ts';
 import {
   createExportDirectoryGrant,
   type ExportDirectoryGrantDescriptor,
@@ -105,13 +100,6 @@ function trustedDesktopHandler(
   };
 }
 
-function handOffExternalUrl(decision: DesktopPageUrlDecision): void {
-  if (decision.action !== 'open-external') return;
-  void shell.openExternal(decision.url).catch((error: unknown) => {
-    console.error('[desktop] failed to open external URL:', error);
-  });
-}
-
 function agentImportPickerDefaultPath(requestedPath: string): string {
   try {
     return existsSync(requestedPath) && statSync(requestedPath).isDirectory()
@@ -120,26 +108,6 @@ function agentImportPickerDefaultPath(requestedPath: string): string {
   } catch {
     return dirname(requestedPath);
   }
-}
-
-function installDesktopPageGuards(win: BrowserWindow, trustedOrigin: string): void {
-  const guardNavigation = (surface: Extract<DesktopPageUrlSurface, 'navigation' | 'redirect'>) => (
-    event: { preventDefault(): void },
-    requestedUrl: string,
-  ): void => {
-    const decision = resolveDesktopPageUrlDecision(requestedUrl, trustedOrigin, surface);
-    if (decision.action === 'allow') return;
-    event.preventDefault();
-    handOffExternalUrl(decision);
-  };
-
-  win.webContents.on('will-navigate', guardNavigation('navigation'));
-  win.webContents.on('will-redirect', guardNavigation('redirect'));
-  win.webContents.setWindowOpenHandler(({ url }) => {
-    const decision = resolveDesktopPageUrlDecision(url, trustedOrigin, 'popup');
-    handOffExternalUrl(decision);
-    return { action: 'deny' };
-  });
 }
 
 function registerDesktopHandlers(trustedOrigin: string): void {
@@ -414,36 +382,15 @@ async function boot(): Promise<void> {
     console.warn('[desktop] UI scale rebase skipped:', error);
   }
 
-  const initialBounds = resolveInitialDesktopWindowBounds(screen.getPrimaryDisplay().workArea);
-  const win = new BrowserWindow({
-    ...initialBounds,
-    show: !SMOKE,
-    backgroundColor: '#111111',
-    title: 'OpenChatCut',
-    ...desktopWindowFrameOptions(),
-    webPreferences: {
-      preload: PRELOAD_PATH,
-      contextIsolation: true,
-      nodeIntegration: false,
-      spellcheck: false,
-      // Same heartbeat reasoning as the transcript window above.
-      backgroundThrottling: false,
-    },
-  });
-  applyDesktopWindowFrame(win);
-  installResponsiveWindowScale(win);
-  const uninstallRendererRecovery = installWindowsRendererRecovery(win);
+  const win = createAppWindow(origin, PRELOAD_PATH, !SMOKE);
   mainWindow = win;
   win.once('closed', () => {
-    uninstallRendererRecovery();
     mainWindow = null;
   });
-  installDesktopPageGuards(win, origin);
-  win.webContents.on('context-menu', (_event, params) => {
-    const template = buildTextContextMenuTemplate(params);
-    if (!template.length) return;
-    Menu.buildFromTemplate(template).popup({ window: win });
-  });
+  // MCP open_project / create_project show a project in an app window. Only when
+  // the server runs in this process (a dev origin is a separate vite server); the
+  // smoke run opens nothing, so its MCP checks keep exercising offline bindings.
+  if (!devOrigin) setEditorOpener(SMOKE ? 'none' : (projectId) => openProjectWindow(origin, PRELOAD_PATH, projectId));
   await win.loadURL(`${origin}/`);
 
   if (SMOKE) {

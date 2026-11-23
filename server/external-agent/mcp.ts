@@ -32,6 +32,7 @@ import {
 import { MCP_CONTROL_TOOL_NAMES } from './mcp-controls.ts';
 import type { OfflineEditorBinding } from './offline-runtime.ts';
 import { createExternalProject, listExternalProjects } from './projects.ts';
+import { openProjectEditor } from './editor-opener.ts';
 import { mcpServerInstructions } from './mcp-instructions.ts';
 import { registerMcpPrompts } from './mcp-prompts.ts';
 import { currentToolList, fullMcpTools, mcpStatus, mcpTools } from './mcp-tool-catalog.ts';
@@ -96,7 +97,20 @@ async function callControlTool(
       );
     }
     const project = await createExternalProject(args);
-    return { ...project, editorUrl: editorUrl(args, project.id, baseUrl) };
+    // The project is created either way; a failed open is reported, not thrown.
+    const opened = await openProjectEditor(project.id, editorUrl({}, project.id, baseUrl))
+      .catch((error: unknown) => ({ connected: false, openError: error instanceof Error ? error.message : String(error) }));
+    return { ...project, editorUrl: editorUrl(args, project.id, baseUrl), ...opened };
+  }
+  if (name === 'open_project') {
+    const projectId = requestedProjectId(args.projectId);
+    if (!projectId) throw new ExternalEditorCallError('rejected', 'projectId is required');
+    const projects = await listExternalProjects();
+    if (!projects.some((project) => project.id === projectId)) {
+      throw new ExternalEditorCallError('rejected', `Project ${projectId} does not exist; call list_projects.`);
+    }
+    // Opened from this server's own origin only, never a client-supplied editorBaseUrl.
+    return openProjectEditor(projectId, editorUrl({}, projectId, baseUrl));
   }
   if (name === 'target_project') {
     const projectId = requestedProjectId(args.projectId);

@@ -115,8 +115,10 @@ async function tick(): Promise<void> { await new Promise((r) => setTimeout(r, 0)
 // editor registered but connected:false (issue #86).
 {
   const main = await readFile(new URL('./main.ts', import.meta.url), 'utf8');
-  const prefs = main.match(/webPreferences:\s*\{[\s\S]*?\}/g) ?? [];
-  assert.ok(prefs.length >= 2, 'main and transcript windows define webPreferences');
+  // The main and project windows are built in editor-windows.ts; the transcript window stays in main.ts.
+  const windows = await readFile(new URL('./editor-windows.ts', import.meta.url), 'utf8');
+  const prefs = `${main}\n${windows}`.match(/webPreferences:\s*\{[\s\S]*?\}/g) ?? [];
+  assert.ok(prefs.length >= 2, 'app (main/project) and transcript windows define webPreferences');
   for (const block of prefs) {
     assert.match(block, /backgroundThrottling:\s*false/, 'every editor webPreferences keeps the bridge heartbeat running in the background');
   }

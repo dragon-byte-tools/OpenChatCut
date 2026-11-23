@@ -21,7 +21,7 @@ export const MCP_CONTROL_TOOLS: Tool[] = [
   },
   {
     name: 'create_project',
-    description: 'Create an empty OpenChatCut project with one active timeline and one video track.',
+    description: 'Create an empty OpenChatCut project with one active timeline and one video track, then open it in the editor (an app window in the desktop app, else the default browser) and wait for it to connect. The result carries connected and openedWith.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -34,6 +34,16 @@ export const MCP_CONTROL_TOOLS: Tool[] = [
       },
     },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+  },
+  {
+    name: 'open_project',
+    description: 'Open an existing project in the OpenChatCut editor so tools that need a live editor can run: focuses its window if already open, otherwise opens it (a new app window in the desktop app, else the default browser) and waits for it to connect. Does not bind this transport; call target_project or pass editorProjectId as usual.',
+    inputSchema: {
+      type: 'object',
+      properties: { projectId: { type: 'string' } },
+      required: ['projectId'],
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
   },
   {
     name: 'target_project',
